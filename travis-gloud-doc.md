@@ -25,11 +25,26 @@ Pro Tip: You can add it automatically by running with --add.
 Make sure to add service-account.json.enc to the git repository.
 Make sure not to add service-account.json to the git repository.
 Commit all changes to your .travis.yml.
-```    
+``` 
+
+### II - Setup docker images
+
+- Setup DOCKER_ID and DOCKER_PASSWORD on travis-ci.org (https://travis-ci.org/lucas2804/k8s_gcloud/settings)
+- login as **echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin**
+
+```bash
+docker build -t lucdang/multi-client:latest -f ./client/Dockerfile ./client
+docker build -t lucdang/multi-server:latest -f ./server/Dockerfile ./server
+docker build -t lucdang/multi-worker:latest -f ./worker/Dockerfile ./worker
+
+docker push lucdang/multi-client:latest 
+docker push lucdang/multi-server:latest 
+docker push lucdang/multi-worker:latest
+```   
     
 ```yaml
 sudo: required
-services:tra
+services:
   - docker
 before_install:
   - openssl aes-256-cbc -K $encrypted_98f85f8775b8_key -iv $encrypted_98f85f8775b8_iv -in service-account.json.enc -out service-account.json -d
@@ -37,7 +52,12 @@ before_install:
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project lucskylab01
+  - gcloud config set compute/zone us-central1-a
+  - gcloud container cluster get-credentials lucskylab01 #(lucskylab01: cluster_name)
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t lucdang/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run stephengrider/react-test npm test -- --coverage
+  - docker run lucdang/react-test  npm test -- --coverage
 ```
