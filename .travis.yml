@@ -16,8 +16,8 @@ before_install:
 script:
   - docker run lucdang/react-test  npm test -- --coverage
 
-deploy:
-  provider: script
-  script: bash ./deploy.sh
-  on:
-    branch: master
+#deploy:
+#  provider: script
+#  script: bash ./deploy.sh
+#  on:
+#    branch: master
