@@ -10,7 +10,7 @@ helm init --service-account tiller --upgrade
 # Install ingress-nginx
 # Mandatory Command
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-helm install stable/nginx-ingress --name my-nginx
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud-generic.yaml
 helm install stable/nginx-ingress --name my-nginx --set rbac.create=true
 
 # Detect nginx
