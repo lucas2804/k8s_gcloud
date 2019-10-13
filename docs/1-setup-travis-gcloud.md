@@ -46,18 +46,34 @@ docker push lucdang/multi-worker:latest
 sudo: required
 services:
   - docker
+cache:
+  directories:
+    # We cache the SDK so we don't have to download it again on subsequent builds.
+    - $HOME/google-cloud-sdk
+env:
+  global:
+    # Do not prompt for user input when using any SDK methods.
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
   - openssl aes-256-cbc -K $encrypted_98f85f8775b8_key -iv $encrypted_98f85f8775b8_iv -in service-account.json.enc -out service-account.json -d
-  - curl https://sdk.cloud.google.com | bash > /dev/null;
-  - source $HOME/google-cloud-sdk/path.bash.inc
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+
+  - source /home/travis/google-cloud-sdk/path.bash.inc
+  - gcloud version
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
   - gcloud config set project lucskylab01
   - gcloud config set compute/zone us-central1-a
-  - gcloud container cluster get-credentials lucskylab01 #(lucskylab01: cluster_name)
+  - gcloud container clusters get-credentials lucskylab01 #(lucskylab01: cluster_name)
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker build -t lucdang/react-test -f ./client/Dockerfile.dev ./client
 
 script:
   - docker run lucdang/react-test  npm test -- --coverage
+
+deploy:
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master
 ```
